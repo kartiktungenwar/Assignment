@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">Assignment</string>
+    <string name="default_web_client_id">AIzaSyBCXPJSzHR6I0_vWEkUYKvCQXxoVre42xw</string>
+    <string name="open_pdf">Open \nPdf</string>
+    <string name="open_photo">Select \nPhoto</string>
+    <string name="reset_db">Sign \nOut</string>
+    <string name="pdf_url">https://fssservices.bookxpert.co/GeneratedPDF/Companies/nadc/2024-2025/BalanceSheet.pdf</string>
+    <string name="select_option">Select your choice</string>
+    <string name="open_camera">Open Camera</string>
+    <string name="open_gallery">Open Gallery</string>
+    <string name="delete">Delete</string>
+    <string name="save">Save</string>
+    <string name="enter_product_name">Enter Product Name</string>
+    <string name="edit_product">Edit Product</string>
+</resources>

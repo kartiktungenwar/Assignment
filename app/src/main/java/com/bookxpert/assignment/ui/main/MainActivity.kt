@@ -4,6 +4,8 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.widget.Button
 import android.widget.ProgressBar
@@ -11,6 +13,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -26,10 +29,14 @@ import com.bookxpert.assignment.base.BaseActivity
 import com.bookxpert.assignment.database.User
 import com.bookxpert.assignment.network.Status
 import com.bookxpert.assignment.ui.splash.SplashActivity
+import com.bookxpert.assignment.ui.splash.SplashActivity.Companion
 import com.bookxpert.assignment.util.Constants.LOGIN_IN
+import com.bookxpert.assignment.util.Constants.isFirstTime
+import com.bookxpert.assignment.util.Constants.isNightMode
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import kotlin.properties.Delegates
 
 @AndroidEntryPoint
 class MainActivity : BaseActivity(), View.OnClickListener, ProductEditInterface,ProductInterface{
@@ -46,10 +53,17 @@ class MainActivity : BaseActivity(), View.OnClickListener, ProductEditInterface,
     private lateinit var recyclerView: RecyclerView
     private lateinit var userAdapter: UserAdapter
     private val model: MainViewModel by viewModels()
+    private var isNightModeStr by Delegates.notNull<Boolean>()
+    private var isFirstTimeStr by Delegates.notNull<Boolean>()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
+        lifecycleScope.launch {
+            isNightModeStr = model.getBooleanValue(isNightMode)
+            isFirstTimeStr = model.getBooleanValue(isFirstTime)
+            toggleTheme(isNightModeStr,isFirstTimeStr,TAG)
+        }
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
@@ -112,6 +126,30 @@ class MainActivity : BaseActivity(), View.OnClickListener, ProductEditInterface,
             selectPhoto()
         }else if (v?.id ==R.id.btn_reset_db) {
             signOut()
+        }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu_main, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_theme -> {
+                if(isNightModeStr){
+                    isNightModeStr = false
+                }else{
+                    isNightModeStr = true
+                }
+                lifecycleScope.launch {
+                    model.saveBoolean(isNightMode,isNightModeStr)
+                    isFirstTimeStr = model.getBooleanValue(isFirstTime)
+                    toggleTheme(isNightModeStr,isFirstTimeStr,TAG)
+                }
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
         }
     }
 
@@ -205,10 +243,15 @@ class MainActivity : BaseActivity(), View.OnClickListener, ProductEditInterface,
     }
 
     override fun productDelete(user: User) {
-        model.deleteData(user)
-        lifecycleScope.launch {
-            val allUsers: MutableList<User> = model.getAllUsers()
-            userAdapter.updateUserList(allUsers)
+        model.deleteData(user){ isDeleted ->
+            if (isDeleted) {
+                Toast.makeText(this, "User  deleted successfully", Toast.LENGTH_SHORT).show()
+            } else {
+
+                Toast.makeText(this, "Failed to delete user", Toast.LENGTH_SHORT).show()
+
+            }
         }
     }
+
 }

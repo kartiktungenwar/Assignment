@@ -12,4 +12,5 @@
     <string name="save">Save</string>
     <string name="enter_product_name">Enter Product Name</string>
     <string name="edit_product">Edit Product</string>
+    <string name="light_mode">Change Mode</string>
 </resources>

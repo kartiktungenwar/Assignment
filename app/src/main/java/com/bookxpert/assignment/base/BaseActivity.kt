@@ -2,11 +2,15 @@ package com.bookxpert.assignment.base
 
 
 import android.content.Context
+import android.content.res.Configuration
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.credentials.ClearCredentialStateRequest
 import androidx.credentials.Credential
 import androidx.credentials.CredentialManager
@@ -67,6 +71,30 @@ abstract class BaseActivity : AppCompatActivity() {
             connectivityManager.getNetworkCapabilities(network)
         }
         return networkCapabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
+    }
+
+    /**
+     * Method toggle Theme
+     */
+    open fun toggleTheme(isNightModeOn: Boolean,isFirstStart: Boolean,Tag: String) {
+        Log.d(Tag,"isNightModeOn "+isNightModeOn.toString()+" isFirstStart "+isFirstStart)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && !isFirstStart ){
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+        } else{
+            when {
+                isNightModeOn -> {
+                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+                } else -> {
+                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+            }
+            }
+        }
+    }
+
+    open fun isNightMode(context: Context): Boolean {
+
+        return (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+
     }
 
     companion object {

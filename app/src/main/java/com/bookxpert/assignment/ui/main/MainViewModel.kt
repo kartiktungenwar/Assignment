@@ -9,6 +9,8 @@ import com.bookxpert.assignment.network.Resource
 import com.bookxpert.assignment.service.repo.MainRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -53,10 +55,10 @@ class MainViewModel @Inject constructor(private val mainRepository: MainReposito
     /**
      * This method used for delete User data from DB
      */
-    fun deleteData(user: User) {
-        // Launch a coroutine in the ViewModel's scope
+    fun deleteData (user: User, onResult: (Boolean) -> Unit) {
         viewModelScope.launch {
-            mainRepository.deleteData(user)
+            val result = mainRepository.deleteData(user)
+            onResult(result) // Call the callback with the result
         }
     }
 
@@ -80,6 +82,9 @@ class MainViewModel @Inject constructor(private val mainRepository: MainReposito
         return mainRepository.getAllUsers() // Call the DAO method
     }
 
+    suspend fun getBooleanValue(userKey: String): Boolean {
+        return mainRepository.getBoolean(userKey).first() ?: false // Default to false if null
+    }
 
     companion object {
         private const val TAG = "MainViewModel"

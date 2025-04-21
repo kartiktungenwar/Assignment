@@ -58,7 +58,8 @@ class MainRepository @Inject constructor(private val dataStore: PreferencesDataS
     }
 
     // Function to insert User
-    suspend fun deleteData(user: User) {
-        userDao.deleteUser(user)
+    suspend fun deleteData(user: User) : Boolean {
+        val rowsDeleted = userDao.deleteUser (user)
+        return rowsDeleted > 0 // Return true if at least one row was deleted
     }
 }

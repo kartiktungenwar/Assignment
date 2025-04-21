@@ -2,6 +2,7 @@ package com.bookxpert.assignment.ui.splash
 
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -13,6 +14,7 @@ import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.credentials.Credential
@@ -25,6 +27,8 @@ import com.bookxpert.assignment.R
 import com.bookxpert.assignment.base.BaseActivity
 import com.bookxpert.assignment.ui.main.MainActivity
 import com.bookxpert.assignment.util.Constants.LOGIN_IN
+import com.bookxpert.assignment.util.Constants.isFirstTime
+import com.bookxpert.assignment.util.Constants.isNightMode
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.Companion.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
@@ -33,6 +37,7 @@ import com.google.firebase.auth.GoogleAuthProvider
 import com.shobhitpuri.custombuttons.GoogleSignInButton
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import kotlin.properties.Delegates
 
 @AndroidEntryPoint
 class SplashActivity : BaseActivity() {
@@ -41,8 +46,15 @@ class SplashActivity : BaseActivity() {
     private lateinit var credentialManager: CredentialManager
     private val model: SplashViewModel by viewModels()
     private val handler = Handler(Looper.getMainLooper())
+    private var isNightModeStr by Delegates.notNull<Boolean>()
+    private var isFirstTimeStr by Delegates.notNull<Boolean>()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        lifecycleScope.launch {
+            isNightModeStr = model.getBooleanValue(isNightMode)
+            isFirstTimeStr = model.getBooleanValue(isFirstTime)
+            toggleTheme(isNightModeStr,isFirstTimeStr, TAG)
+        }
         enableEdgeToEdge()
         setContentView(R.layout.activity_splash)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.splash)) { v, insets ->
@@ -126,9 +138,13 @@ class SplashActivity : BaseActivity() {
                     Log.d(TAG, "signInWithCredential:success")
                     lifecycleScope.launch {
                         model.saveBoolean(LOGIN_IN,true)
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && !isFirstTimeStr ) {
+                            model.saveBoolean(isFirstTime, true)
+                            model.saveBoolean(isNightMode,isNightMode(this@SplashActivity))
+                            startActivity(Intent(this@SplashActivity, MainActivity::class.java))
+                            finish()
+                        }
                     }
-                    startActivity(Intent(this, MainActivity::class.java))
-                    finishAffinity()
                 } else {
                     // If sign in fails, display a message to the user
                     Log.d(TAG, "signInWithCredential:failure", task.exception)
@@ -142,16 +158,17 @@ class SplashActivity : BaseActivity() {
     }
 
     private fun checkLogin(userKey: String) {
-        lifecycleScope.launch {
-            model.getBoolean(userKey).collect { value ->
-                // Handle the retrieved boolean value
-                if(value == true){
-                    startActivity(Intent(this@SplashActivity,MainActivity::class.java))
-                    finishAffinity()
-                }else{
-                    signIn.visibility = View.VISIBLE
+            lifecycleScope.launch {
+                model.getBoolean(userKey).collect { value ->
+                    // Handle the retrieved boolean value
+                    if(value == true){
+                        startActivity(Intent(this@SplashActivity,MainActivity::class.java))
+                        finishAffinity()
+                    }else{
+                        signIn.visibility = View.VISIBLE
+                    }
                 }
-            }
         }
     }
+
 }

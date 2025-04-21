@@ -67,6 +67,7 @@ dependencies {
     implementation(kotlin("script-runtime"))
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.swiperefreshlayout)
+    implementation(libs.firebase.messaging.ktx)
     kapt(libs.androidx.room.compiler)
     kapt(libs.hilt.compiler)
     implementation(libs.androidx.datastore.preferences)
